@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
@@ -35,13 +35,15 @@
     
     <!-- Control Panel / Input Form -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl">
-          <i class="fa-solid fa-sliders"></i>
-        </div>
-        <div>
-          <h2 class="text-xl font-bold text-slate-900">แผงควบคุมและตั้งค่าข้อมูล</h2>
-          <p class="text-xs text-slate-500">ปรับเปลี่ยนราคารถ ส่วนลด อัตราดอกเบี้ยตามเงินดาวน์ และข้อมูลผู้ขาย</p>
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">แผงควบคุมและตั้งค่าข้อมูล</h2>
+            <p class="text-xs text-slate-500">ปรับเปลี่ยนราคารถ ส่วนลด อัตราดอกเบี้ยตามเงินดาวน์ และการแสดงผล</p>
+          </div>
         </div>
       </div>
 
@@ -72,9 +74,19 @@
 
         <!-- Interest Rates Matrix Input -->
         <div class="md:col-span-3 border-t border-slate-100 pt-4 mt-2">
-          <span class="text-xs font-bold text-slate-700 block mb-3">
-            <i class="fa-solid fa-percent text-blue-500 mr-1"></i> ตารางกำหนดอัตราดอกเบี้ย (%) แยกตาม % เงินดาวน์
-          </span>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <span class="text-xs font-bold text-slate-700">
+              <i class="fa-solid fa-percent text-blue-500 mr-1"></i> ตารางกำหนดอัตราดอกเบี้ย (%) แยกตาม % เงินดาวน์
+            </span>
+
+            <!-- Toggle Show/Hide Rates Switch -->
+            <label class="inline-flex items-center cursor-pointer gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+              <input type="checkbox" id="toggleShowRates" checked class="sr-only peer">
+              <div class="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+              <span class="text-xs font-semibold text-slate-700 select-none">แสดงอัตราดอกเบี้ยในตาราง</span>
+            </label>
+          </div>
+
           <div class="overflow-x-auto">
             <table class="w-full text-xs text-left border-collapse">
               <thead>
@@ -139,8 +151,11 @@
     </div>
 
     <!-- Export Action Button -->
-    <div class="flex justify-end">
-      <button onclick="exportToPNG()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2 cursor-pointer">
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+      <div class="text-xs text-slate-500">
+        <i class="fa-solid fa-eye text-blue-500 mr-1"></i> สามารถปิด/เปิด อัตราดอกเบี้ยได้ที่สวิตช์ก่อนทำการบันทึกภาพ
+      </div>
+      <button onclick="exportToPNG()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
         <i class="fa-solid fa-file-image text-lg"></i> บันทึกตารางเป็นรูปภาพ (PNG)
       </button>
     </div>
@@ -183,10 +198,10 @@
               <th class="py-3.5 px-4 rounded-tl-lg">เงินดาวน์</th>
               <th class="py-3.5 px-4">จำนวนเงินดาวน์</th>
               <th class="py-3.5 px-4">ยอดจัดไฟแนนซ์</th>
-              <th class="py-3.5 px-4 text-center">48 งวด (4 ปี)</th>
-              <th class="py-3.5 px-4 text-center">60 งวด (5 ปี)</th>
-              <th class="py-3.5 px-4 text-center">72 งวด (6 ปี)</th>
-              <th class="py-3.5 px-4 text-center rounded-tr-lg">84 งวด (7 ปี)</th>
+              <th class="py-3.5 px-4 text-center">48 เดือน (4 ปี)</th>
+              <th class="py-3.5 px-4 text-center">60 เดือน (5 ปี)</th>
+              <th class="py-3.5 px-4 text-center">72 เดือน (6 ปี)</th>
+              <th class="py-3.5 px-4 text-center rounded-tr-lg">84 เดือน (7 ปี)</th>
             </tr>
           </thead>
           <tbody id="tableBody" class="divide-y divide-slate-200 text-sm">
@@ -249,6 +264,8 @@
       const salesPhone = document.getElementById('inputSalesPhone').value;
       const salesLine = document.getElementById('inputSalesLine').value;
 
+      const showRates = document.getElementById('toggleShowRates').checked;
+
       const netPrice = Math.max(0, rawPrice - discount);
 
       // 2. Update Header Displays
@@ -282,6 +299,9 @@
         const pay72 = calculateInstallment(loanAmount, r72, 72);
         const pay84 = calculateInstallment(loanAmount, r84, 84);
 
+        // Render rate badge only if showRates is checked
+        const rateBadge = (rate) => showRates ? `<div class="text-[10px] text-slate-400 mt-0.5">ดอกเบี้ย ${rate}%</div>` : '';
+
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition-colors font-medium';
         tr.innerHTML = `
@@ -290,19 +310,19 @@
           <td class="py-3.5 px-4 text-slate-500">${formatMoney(loanAmount)} ฿</td>
           <td class="py-3.5 px-4 text-center">
             <div class="font-bold text-slate-900">${formatMoney(pay48)} ฿</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">ดอกเบี้ย ${r48}%</div>
+            ${rateBadge(r48)}
           </td>
           <td class="py-3.5 px-4 text-center">
             <div class="font-bold text-slate-900">${formatMoney(pay60)} ฿</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">ดอกเบี้ย ${r60}%</div>
+            ${rateBadge(r60)}
           </td>
           <td class="py-3.5 px-4 text-center">
             <div class="font-bold text-slate-900">${formatMoney(pay72)} ฿</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">ดอกเบี้ย ${r72}%</div>
+            ${rateBadge(r72)}
           </td>
           <td class="py-3.5 px-4 text-center bg-amber-50/30">
             <div class="font-bold text-blue-700">${formatMoney(pay84)} ฿</div>
-            <div class="text-[10px] text-slate-400 mt-0.5">ดอกเบี้ย ${r84}%</div>
+            ${rateBadge(r84)}
           </td>
         `;
         tbody.appendChild(tr);
@@ -334,7 +354,8 @@
     
     let allInputIds = [
       'inputCarModel', 'inputSubModel', 'inputCarPrice', 'inputDiscount', 
-      'inputPromo', 'inputSalesName', 'inputSalesPhone', 'inputSalesLine'
+      'inputPromo', 'inputSalesName', 'inputSalesPhone', 'inputSalesLine',
+      'toggleShowRates'
     ];
 
     downPcts.forEach(p => {
@@ -347,6 +368,7 @@
       const el = document.getElementById(id);
       if (el) {
         el.addEventListener('input', updateTable);
+        el.addEventListener('change', updateTable);
       }
     });
 
