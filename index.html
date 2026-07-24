@@ -14,8 +14,8 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- html2canvas CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- html2pdf.js CDN (รวม html2canvas และ jsPDF ไว้ในตัวเรียบร้อยแล้ว) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
     body {
@@ -153,10 +153,10 @@
     <!-- Export Action Button -->
     <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
       <div class="text-xs text-slate-500">
-        <i class="fa-solid fa-eye text-blue-500 mr-1"></i> สามารถปิด/เปิด อัตราดอกเบี้ยได้ที่สวิตช์ก่อนทำการบันทึกภาพ
+        <i class="fa-solid fa-eye text-blue-500 mr-1"></i> สามารถปิด/เปิด อัตราดอกเบี้ยได้ที่สวิตช์ก่อนทำการบันทึกเอกสาร
       </div>
-      <button onclick="exportToPNG()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
-        <i class="fa-solid fa-file-image text-lg"></i> บันทึกตารางเป็นรูปภาพ (PNG)
+      <button onclick="exportToPDF()" class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
+        <i class="fa-solid fa-file-pdf text-lg"></i> บันทึกตารางเป็นไฟล์ PDF
       </button>
     </div>
 
@@ -329,26 +329,27 @@
       });
     }
 
-    // Export to PNG Function
-    function exportToPNG() {
+    // Export to PDF Function (ใช้ html2pdf.js)
+    function exportToPDF() {
       const captureArea = document.getElementById('captureArea');
-      
-      html2canvas(captureArea, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff"
-      }).then(canvas => {
-        const link = document.createElement('a');
-        const carModel = document.getElementById('inputCarModel').value || 'car-finance';
-        const dateStr = new Date().toISOString().slice(0, 10);
-        
-        link.download = `ตารางค่างวด_${carModel.replace(/\s+/g, '_')}_${dateStr}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      });
+      const carModel = document.getElementById('inputCarModel').value || 'car-finance';
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const filename = `ตารางค่างวด_${carModel.replace(/\s+/g, '_')}_${dateStr}.pdf`;
+
+      // ตั้งค่าการแปลงเป็น PDF (แนวนอน Landscape เพื่อความสวยงามและไม่ล้นขอบ)
+      const opt = {
+        margin:       [0.3, 0.3, 0.3, 0.3],
+        filename:     filename,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+      };
+
+      // รันกระบวนการสร้างและดาวน์โหลดไฟล์ PDF
+      html2pdf().set(opt).from(captureArea).save();
     }
 
-    // Event Listeners for Live Calculation
+    // Event Listeners สำหรับคำนวณสดทันทีที่มีการแก้ไข
     const downPcts = [10, 15, 20, 25];
     const monthsList = [48, 60, 72, 84];
     
@@ -372,7 +373,7 @@
       }
     });
 
-    // Initial Calculation on Page Load
+    // แสดงผลคำนวณอัตโนมัติเมื่อโหลดหน้าเว็บ
     window.onload = updateTable;
   </script>
 </body>
