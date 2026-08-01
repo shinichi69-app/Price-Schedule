@@ -42,9 +42,12 @@
           </div>
           <div>
             <h2 class="text-xl font-bold text-slate-900">แผงควบคุมและตั้งค่าข้อมูล</h2>
-            <p class="text-xs text-slate-500">ปรับเปลี่ยนราคารถ ส่วนลด อัตราดอกเบี้ยตามเงินดาวน์ และการแสดงผล</p>
+            <p class="text-xs text-slate-500">ปรับเปลี่ยนราคารถ ส่วนลด อัตราดอกเบี้ยตามเงินดาวน์ และการแสดงผล (บันทึกข้อมูลอัตโนมัติ)</p>
           </div>
         </div>
+        <button onclick="resetStorage()" class="text-xs text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
+          <i class="fa-solid fa-rotate-left"></i> รีเซ็ตค่าเริ่มต้น
+        </button>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -152,8 +155,8 @@
 
     <!-- Export Action Button -->
     <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
-      <div class="text-xs text-slate-500">
-        <i class="fa-solid fa-eye text-blue-500 mr-1"></i> สามารถปิด/เปิด อัตราดอกเบี้ยได้ที่สวิตช์ก่อนทำการบันทึกรูปภาพ
+      <div class="text-xs text-slate-500 flex items-center gap-1">
+        <i class="fa-solid fa-floppy-disk text-emerald-500"></i> ระบบบันทึกข้อมูลการตั้งค่าให้อัตโนมัติในเครื่องของคุณ
       </div>
       <button onclick="exportToPNG()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
         <i class="fa-solid fa-image text-lg"></i> บันทึกตารางเป็นรูปภาพลงPC (PNG)
@@ -237,6 +240,8 @@
 
   <!-- JavaScript Logic -->
   <script>
+    const STORAGE_KEY = 'car_finance_builder_data';
+
     // Thai Currency Formatting
     function formatMoney(amount) {
       return Math.round(amount).toLocaleString('th-TH');
@@ -250,6 +255,66 @@
       const totalInterest = loanAmount * (ratePct / 100) * years;
       const totalPayable = loanAmount + totalInterest;
       return totalPayable / months;
+    }
+
+    // Get List of All Input Elements IDs
+    function getAllInputIds() {
+      const downPcts = [10, 15, 20, 25];
+      const monthsList = [48, 60, 72, 84];
+      let ids = [
+        'inputCarModel', 'inputSubModel', 'inputCarPrice', 'inputDiscount', 
+        'inputPromo', 'inputSalesName', 'inputSalesPhone', 'inputSalesLine',
+        'toggleShowRates'
+      ];
+
+      downPcts.forEach(p => {
+        monthsList.forEach(m => {
+          ids.push(`rate_${p}_${m}`);
+        });
+      });
+      return ids;
+    }
+
+    // Save Data to LocalStorage
+    function saveToStorage() {
+      const data = {};
+      getAllInputIds().forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          data[id] = el.type === 'checkbox' ? el.checked : el.value;
+        }
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    // Load Data from LocalStorage
+    function loadFromStorage() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+
+      try {
+        const data = JSON.parse(saved);
+        getAllInputIds().forEach(id => {
+          const el = document.getElementById(id);
+          if (el && data[id] !== undefined) {
+            if (el.type === 'checkbox') {
+              el.checked = data[id];
+            } else {
+              el.value = data[id];
+            }
+          }
+        });
+      } catch (e) {
+        console.error('Failed to load saved data:', e);
+      }
+    }
+
+    // Reset Data to Defaults
+    function resetStorage() {
+      if (confirm('คุณต้องการรีเซ็ตค่าทั้งหมดกลับเป็นค่าเริ่มต้นใช่หรือไม่?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      }
     }
 
     function updateTable() {
@@ -327,6 +392,9 @@
         `;
         tbody.appendChild(tr);
       });
+
+      // Save latest state
+      saveToStorage();
     }
 
     // Export to PNG Function (ใช้ html2canvas)
@@ -336,14 +404,14 @@
       const dateStr = new Date().toISOString().slice(0, 10);
       const cleanFileName = `ตารางค่างวด_${carModel.replace(/\s+/g, '_')}_${dateStr}.png`;
 
-      // เลื่อน Scroll กลับบนสุดชั่วคราวเพื่อป้องกันภาพถูกตัดขอบบนมือถือ
+      // เลื่อน Scroll กลับบนสุดชั่วคราวเพื่อป้องกันภาพถูกตัดขอบ
       window.scrollTo(0, 0);
 
       html2canvas(captureArea, {
-        scale: 2, // เพิ่มความละเอียดระดับ HD 2x
+        scale: 2, // ความละเอียดระดับ HD 2x
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#ffffff', // บังคับพื้นหลังสีขาวแน่นหนา
+        backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0
       }).then(canvas => {
@@ -357,32 +425,23 @@
       });
     }
 
-    // Event Listeners สำหรับคำนวณสดทันทีที่มีการแก้ไข
-    const downPcts = [10, 15, 20, 25];
-    const monthsList = [48, 60, 72, 84];
-    
-    let allInputIds = [
-      'inputCarModel', 'inputSubModel', 'inputCarPrice', 'inputDiscount', 
-      'inputPromo', 'inputSalesName', 'inputSalesPhone', 'inputSalesLine',
-      'toggleShowRates'
-    ];
+    // Event Listeners และ Initialization
+    window.onload = function() {
+      // 1. โหลดข้อมูลเก่าที่เคยบันทึกไว้
+      loadFromStorage();
 
-    downPcts.forEach(p => {
-      monthsList.forEach(m => {
-        allInputIds.push(`rate_${p}_${m}`);
+      // 2. ผูก Event Listeners ให้บันทึกและคำนวณสดทันทีที่มีการพิมพ์
+      getAllInputIds().forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', updateTable);
+          el.addEventListener('change', updateTable);
+        }
       });
-    });
 
-    allInputIds.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('input', updateTable);
-        el.addEventListener('change', updateTable);
-      }
-    });
-
-    // แสดงผลคำนวณอัตโนมัติเมื่อโหลดหน้าเว็บ
-    window.onload = updateTable;
+      // 3. คำนวณและแสดงผลครั้งแรก
+      updateTable();
+    };
   </script>
 </body>
 </html>
